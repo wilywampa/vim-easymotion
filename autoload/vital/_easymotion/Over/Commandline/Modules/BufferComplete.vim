@@ -38,11 +38,11 @@ function! s:_as_statusline(list, count)
 	let tail = " > "
 	let result = a:list[0]
 	let pos = 0
-    if v:version < 703
-        let wid = strlen(result . " " . a:list[i])
-    else
-        let wid = strdisplaywidth(result . " " . a:list[i])
-    endif
+	if v:version < 703
+		let wid = strlen(result . " " . a:list[i])
+	else
+		let wid = strdisplaywidth(result . " " . a:list[i])
+	endif
 	for i in range(1, len(a:list)-1)
 		if wid > &columns - len(tail)
 			if a:count < i
