@@ -605,7 +605,11 @@ endfunction "}}}
 function! s:should_use_wundo() "{{{
     " wundu cannot use in command-line window and
     " unless undolist is not empty
-    return ! s:is_cmdwin() && undotree().seq_last != 0
+    if v:version < 703
+        return 0
+    else
+        return ! s:is_cmdwin() && undotree().seq_last != 0
+    endif
 endfunction "}}}
 function! EasyMotion#attach_active_autocmd() "{{{
     " Reference: https://github.com/justinmk/vim-sneak
@@ -852,10 +856,17 @@ function! s:PromptUser(groups) "{{{
         " This has to be done in order to match the correct
         " column; \%c matches the byte column and not display
         " column.
-        let target_char_len = strdisplaywidth(
-                                \ matchstr(lines[line_num]['marker'],
-                                \          '\%' . col_num . 'c.'))
-        let target_key_len = strdisplaywidth(target_key)
+        if v:version < 703
+            let target_char_len = strlen(
+                \ matchstr(lines[line_num]['marker'],
+                \          '\%' . col_num . 'c.'))
+            let target_key_len = strlen(target_key)
+        else
+            let target_char_len = strdisplaywidth(
+                \ matchstr(lines[line_num]['marker'],
+                \          '\%' . col_num . 'c.'))
+            let target_key_len = strdisplaywidth(target_key)
+        endif
 
 
         let target_line_byte_len = strlen(lines[line_num]['marker'])

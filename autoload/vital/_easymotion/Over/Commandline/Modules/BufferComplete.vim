@@ -24,7 +24,7 @@ endfunction
 
 function! s:_parse_line(line)
 	let keyword = matchstr(a:line, '\zs\w\+\ze$')
-	let pos = strchars(a:line) - strchars(keyword)
+	let pos = EasyMotion#helper#strchars(a:line) - EasyMotion#helper#strchars(keyword)
 	return [pos, keyword]
 endfunction
 
@@ -38,8 +38,13 @@ function! s:_as_statusline(list, count)
 	let tail = " > "
 	let result = a:list[0]
 	let pos = 0
+    if v:version < 703
+        let wid = strlen(result . " " . a:list[i])
+    else
+        let wid = strdisplaywidth(result . " " . a:list[i])
+    endif
 	for i in range(1, len(a:list)-1)
-		if strdisplaywidth(result . " " . a:list[i]) > &columns - len(tail)
+		if wid > &columns - len(tail)
 			if a:count < i
 				break
 			else
