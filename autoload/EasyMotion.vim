@@ -3,7 +3,7 @@
 " Author: Kim Silkebækken <kim.silkebaekken+vim@gmail.com>
 "         haya14busa <hayabusa1419@gmail.com>
 " Source: https://github.com/Lokaltog/vim-easymotion
-" Last Change: 21 Feb 2014.
+" Last Change: 03 Mar 2014.
 "=============================================================================
 " Saving 'cpoptions' {{{
 scriptencoding utf-8
@@ -96,7 +96,7 @@ function! EasyMotion#reset()
         " start_position:
         "   Original, start cursor position.
         " cursor_position:
-        "   Usually, this valuse is same with start_position, but in
+        "   Usually, this values is same with start_position, but in
         "   visualmode and 'n' key motion, this value could be different.
     return ""
 endfunction "}}}
@@ -504,8 +504,7 @@ function! s:should_use_migemo(char) "{{{
         let end_line = line('w$')
     endif
 
-
-    " Skip folded line and check if text include multibyte haracters
+    " Skip folded line and check if text include multibyte characters
     for line in range(first_line, end_line)
         if EasyMotion#helper#is_folded(line)
             continue
@@ -827,19 +826,34 @@ function! s:PromptUser(groups) "{{{
         return group_values[0]
     endif
     " }}}
+
     " -- Prepare marker lines ---------------- {{{
     let lines = {}
 
     let coord_key_dict = s:CreateCoordKeyDict(a:groups)
 
     for dict_key in sort(coord_key_dict[0])
-        let target_key = coord_key_dict[1][dict_key]
+        " NOTE: {{{
+        " let g:EasyMotion_keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        " Perform <Plug>(easymotion-w)
+        "
+        " lines[line_num]['orig']:
+        "   Lorem ipsum dolor sit amet consectetur adipisicing
+        "
+        " {target_char}:
+        "   {L}orem {i}psum {d}olor {s}it {a}met {c}onsectetur {a}dipisicing
+        "
+        " lines[line_num]['marker'], {marker_chars}:
+        "   {A}orem {B}psum {C}olor {D}it {E}met {F}onsectetur {G}dipisicing
+        "   2-key-combo: {marker_chars} could be 1 or 2 chars like {AB}
+        "
+        " }}}
+
+        " Prepare original line and marker line {{{
         let [line_num, col_num] = split(dict_key, ',')
 
         let line_num = str2nr(line_num)
         let col_num = str2nr(col_num)
-
-        " Add original line and marker line
         if ! has_key(lines, line_num)
             let current_line = getline(line_num)
             let lines[line_num] = {
@@ -847,89 +861,82 @@ function! s:PromptUser(groups) "{{{
                 \ 'marker': current_line,
                 \ 'mb_compensation': 0,
                 \ }
-        endif
+            " mb_compensation -> multibyte compensation
+            let prev_col_num = 0
+        endif "}}}
 
+        " Multibyte Compensation: {{{
         " Solve multibyte issues by matching the byte column
         " number instead of the visual column
-        let col_num -= lines[line_num]['mb_compensation']
-
         " Compensate for byte difference between marker
         " character and target character
         "
         " This has to be done in order to match the correct
         " column; \%c matches the byte column and not display
         " column.
-        if v:version < 703
-            let target_char_len = strlen(
-                \ matchstr(lines[line_num]['marker'],
-                \          '\%' . col_num . 'c.'))
-            let target_key_len = strlen(target_key)
-        else
-            let target_char_len = strdisplaywidth(
-                \ matchstr(lines[line_num]['marker'],
-                \          '\%' . col_num . 'c.'))
-            let target_key_len = strdisplaywidth(target_key)
-        endif
-
-
-        let target_line_byte_len = strlen(lines[line_num]['marker'])
-
-        " let target_char_byte_len = strlen(matchstr(
-        "                                     \ lines[line_num]['marker'],
-        "                                     \ '\%' . col_num . 'c.'))
-
-        if strlen(lines[line_num]['marker']) > 0
-        " Substitute marker character if line length > 0
-            let c = 0
-            let marker_max_length = g:EasyMotion_disable_two_key_combo == 1
-                                  \ ? 1 : 2
-            while c < target_key_len && c < marker_max_length
-                if strlen(lines[line_num]['marker']) >= col_num + c
-                    " Substitute marker character if line length > 0
-                    if c == 0
-                        let lines[line_num]['marker'] = substitute(
-                            \ lines[line_num]['marker'],
-                            \ '\%' . (col_num + c) . 'c.',
-                            \ strpart(target_key, c, 1) . repeat(' ', target_char_len - 1),
-                            \ '')
-                    else
-                        let lines[line_num]['marker'] = substitute(
-                            \ lines[line_num]['marker'],
-                            \ '\%' . (col_num + c) . 'c.',
-                            \ strpart(target_key, c, 1),
-                            \ '')
-                    endif
-                else
-                    let lines[line_num]['marker'] .= strpart(target_key, c, 1)
-                endif
-                let c += 1
-            endwhile
-        else
-        " Set the line to the marker character if the line is empty
-            let lines[line_num]['marker'] = target_key
-        endif
-
-        " -- Highlight targets ------------------- {{{
-        if target_key_len == 1
-            call EasyMotion#highlight#add_highlight(
-                \ '\%' . line_num . 'l\%' . col_num . 'c',
-                \ g:EasyMotion_hl_group_target)
-        else
-            call EasyMotion#highlight#add_highlight(
-                \ '\%' . line_num . 'l\%' . col_num . 'c',
-                \ g:EasyMotion_hl2_first_group_target)
-            if g:EasyMotion_disable_two_key_combo != 1
-                call EasyMotion#highlight#add_highlight(
-                    \ '\%' . line_num . 'l\%' . (col_num + 1) . 'c',
-                    \ g:EasyMotion_hl2_second_group_target)
-            endif
-        endif
+        let col_num = max([prev_col_num + 1,
+                        \  col_num - lines[line_num]['mb_compensation']])
+        let prev_col_num = col_num
         "}}}
 
-        " Add marker/target length difference for multibyte
-        " compensation
-        let lines[line_num]['mb_compensation'] +=
-            \ (target_line_byte_len - strlen(lines[line_num]['marker']))
+        " Prepare marker characters {{{
+        let marker_chars = coord_key_dict[1][dict_key]
+        let marker_chars_len = EasyMotion#helper#strchars(marker_chars)
+        let marker_chars_first_byte_len = strlen(matchstr(marker_chars,
+                                                        \ '^.'))
+        "}}}
+
+        " Replace {target} with {marker} & Highlight {{{
+        let col_add = 0 " Column add byte length
+        " Disable two-key-combo feature?
+        let marker_max_length = g:EasyMotion_disable_two_key_combo == 1
+                                \ ? 1 : 2
+        for i in range(min([marker_chars_len, marker_max_length]))
+            let marker_char = split(marker_chars, '\zs')[i]
+            " EOL {{{
+            if strlen(lines[line_num]['marker']) < col_num + col_add
+                " Append marker chars if target is EOL
+                let lines[line_num]['marker'] .= ' '
+            endif "}}}
+
+            let target_col = '\%' . (col_num + col_add) . 'c.'
+            let target_char = matchstr(lines[line_num]['marker'],
+                                      \ target_col)
+            if v:version < 703
+                let space_len = 0
+            else
+                let space_len = strdisplaywidth(target_char)
+                            \ - strdisplaywidth(marker_char)
+            endif
+            " Substitute marker character
+            let substitute_expr = marker_char . repeat(' ', space_len)
+
+            let lines[line_num]['marker'] = substitute(
+                \ lines[line_num]['marker'],
+                \ target_col,
+                \ escape(substitute_expr,'&'),
+                \ '')
+
+            " Highlight targets {{{
+            if marker_chars_len == 1
+                let _hl_group = g:EasyMotion_hl_group_target
+            elseif i == 0
+                let _hl_group = g:EasyMotion_hl2_first_group_target
+            else
+                let _hl_group = g:EasyMotion_hl2_second_group_target
+            endif
+            call EasyMotion#highlight#add_highlight(
+                \ '\%' . line_num . 'l' . target_col,
+                \ _hl_group)
+            "}}}
+
+            " Add marker/target length difference for multibyte compensation
+            let lines[line_num]['mb_compensation'] +=
+                \ strlen(target_char) - strlen(substitute_expr)
+            " Shift column
+            let col_add += strlen(marker_char)
+        endfor
+        "}}}
     endfor
 
     let lines_items = items(lines)
@@ -959,7 +966,7 @@ function! s:PromptUser(groups) "{{{
 
         " Jump first target when Enter or Space key is pressed "{{{
         if (char ==# "\<CR>" && g:EasyMotion_enter_jump_first == 1) ||
-        \  (char ==# " " && g:EasyMotion_space_jump_first == 1)
+        \  (char ==# "\<Space>" && g:EasyMotion_space_jump_first == 1)
             " NOTE: matchstr() is multibyte aware.
             let char = matchstr(g:EasyMotion_keys, '^.')
         endif "}}}
@@ -1112,7 +1119,8 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive) " {{{
             keepjumps call cursor(s:current.cursor_position)
             "}}}
             " Update s:current.original_position
-            let s:current.original_position = v_original_pos " overwrite original start positio
+            " overwrite original start position
+            let s:current.original_position = v_original_pos
         endif "}}}
 
         " Handle bi-directional t motion {{{
