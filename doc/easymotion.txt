@@ -1,4 +1,4 @@
-*easymotion.txt*	Version 2.0  Last change:24 Feb 2014.
+*easymotion.txt*	Version 2.0  Last change:21 Mar 2014.
 
 
             ______                  __  ___       __  _
@@ -152,7 +152,7 @@ EasyMotion <Plug> table                                *easymotion-plug-table*
     <Plug>(easymotion-jumptoanywhere) | See |<Plug>(easymotion-jumptoanywhere)|
     <Plug>(easymotion-repeat)         | See |<Plug>(easymotion-repeat)|
     <Plug>(easymotion-next)           | See |<Plug>(easymotion-next)|
-    <Plug>(easymotion-previous)       | See |<Plug>(easymotion-previous)|
+    <Plug>(easymotion-prev)           | See |<Plug>(easymotion-prev)|
     <Plug>(easymotion-sol-j)          | See |<Plug>(easymotion-sol-j)|
     <Plug>(easymotion-sol-k)          | See |<Plug>(easymotion-sol-k)|
     <Plug>(easymotion-eol-j)          | See |<Plug>(easymotion-eol-j)|
@@ -303,8 +303,8 @@ Repeat ~
             nmap <Leader>; <Plug>(easymotion-next)
             nmap <Leader>, <Plug>(easymotion-prev)
 <
-        This feature is partly inspired by and based on vim-sneak. vim-sneak
-        can be downloaded here: https://github.com/justinmk/vim-sneak
+        This feature is inspired by and based on vim-sneak. vim-sneak can be
+        downloaded here: https://github.com/justinmk/vim-sneak
 
 EasyMotion dot repeat~
                                     *easymotion-dotrepeat* *easymotion-textobjct*
@@ -930,8 +930,8 @@ EasyMotion_add_search_history                 *g:EasyMotion_add_search_history*
     inputted pattern to vim default search history. If you want to disable
     this feature, set this value to 0.
 >
-    let g:EasyMotion_add_search_history = 0 
-< 
+    let g:EasyMotion_add_search_history = 0
+<
     Default: 1
 
 EasyMotion_off_screen_search                   *g:EasyMotion_off_screen_search*
