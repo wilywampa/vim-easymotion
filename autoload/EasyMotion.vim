@@ -848,17 +848,17 @@ function! s:PromptUser(groups) "{{{
     " Recursive
     let group_values = values(a:groups)
 
-    " -- If only one possible match, jump directly to it {{{
-    if len(group_values) == 1
-        if mode(1) ==# 'no'
-            " Consider jump to first match
-            " NOTE: matchstr() handles multibyte characters.
-            let s:dot_repeat['target'] = matchstr(g:EasyMotion_keys, '^.')
-        endif
-        redraw
-        return group_values[0]
-    endif
-    " }}}
+    " " -- If only one possible match, jump directly to it {{{
+    " if len(group_values) == 1
+    "     if mode(1) ==# 'no'
+    "         " Consider jump to first match
+    "         " NOTE: matchstr() handles multibyte characters.
+    "         let s:dot_repeat['target'] = matchstr(g:EasyMotion_keys, '^.')
+    "     endif
+    "     redraw
+    "     return group_values[0]
+    " endif
+    " " }}}
 
     " -- Prepare marker lines ---------------- {{{
     let lines = {}
@@ -1304,6 +1304,7 @@ function! s:EasyMotion(regexp, direction, visualmode, is_inclusive) " {{{
             let coords = s:PromptUser(groups)
             let s:previous_target_coord = coords
         else
+            echom 'let coords = s:DotPromptUser(groups)'
             let coords = s:DotPromptUser(groups)
         endif
         "}}}
